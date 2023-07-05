@@ -1,19 +1,24 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import userRepository from "../repositories/user.repository";
+import DatabaseError from "../models/errors/database.error.model";
 
 // get /users
 const usersRoute = Router();
-usersRoute.get('/users', async  (req: Request, res: Response, next: NextFunction) => {
+usersRoute.get('/users', async (req: Request, res: Response, next: NextFunction) => {
     const users = await userRepository.findAllUser();
     res.status(StatusCodes.OK).send({ users });
 });
 
 // get /users/:uuid
 usersRoute.get('/users/:uuid', async (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
-    const uuid = req.params.uuid;
-    const user = await userRepository.findById(uuid);
-    res.status(StatusCodes.OK).send({ user });
+    try {
+        const uuid = req.params.uuid;
+        const user = await userRepository.findById(uuid);
+        res.status(StatusCodes.OK).send({ user });
+    } catch (error) {
+        next(error);
+    }
 });
 
 // post /users
@@ -28,7 +33,7 @@ usersRoute.put('/users/:uuid', async (req: Request<{ uuid: string }>, res: Respo
     const uuid = req.params.uuid;
     const modifiedUsers = req.body;
 
-    modifiedUsers.uuid = uuid; 
+    modifiedUsers.uuid = uuid;
 
     await userRepository.update(modifiedUsers);
 
@@ -38,7 +43,7 @@ usersRoute.put('/users/:uuid', async (req: Request<{ uuid: string }>, res: Respo
 //  delete /users/:uuid
 usersRoute.delete('/users/:uuid', async (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
     const uuid = req.params.uuid
-    await  userRepository.remove(uuid);
+    await userRepository.remove(uuid);
     res.sendStatus(StatusCodes.OK);
 });
 
