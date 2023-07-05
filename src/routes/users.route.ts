@@ -1,38 +1,44 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
+import userRepository from "../repositories/user.repository";
 
 // get /users
 const usersRoute = Router();
-usersRoute.get('/users', (req: Request, res: Response, next: NextFunction) => {
-    const users = [{ userName: 'Gabriel' }];
+usersRoute.get('/users', async  (req: Request, res: Response, next: NextFunction) => {
+    const users = await userRepository.findAllUser();
     res.status(StatusCodes.OK).send({ users });
 });
 
 // get /users/:uuid
-usersRoute.get('/users/:uuid', (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
+usersRoute.get('/users/:uuid', async (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
     const uuid = req.params.uuid;
-    res.status(StatusCodes.OK).send({ uuid });
+    const user = await userRepository.findById(uuid);
+    res.status(StatusCodes.OK).send({ user });
 });
 
 // post /users
-usersRoute.post('/users', (req: Request, res: Response, next: NextFunction) => {
+usersRoute.post('/users', async (req: Request, res: Response, next: NextFunction) => {
     const newUser = req.body;
-    console.log('req.body');
+    const uuid = await userRepository.create(newUser);
     res.status(StatusCodes.CREATED).send(newUser);
 });
 
 // put /users/:uuid 
-usersRoute.put('/users/:uuid', (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
+usersRoute.put('/users/:uuid', async (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
     const uuid = req.params.uuid;
     const modifiedUsers = req.body;
 
     modifiedUsers.uuid = uuid; 
 
-    res.status(StatusCodes.OK).send(modifiedUsers);
+    await userRepository.update(modifiedUsers);
+
+    res.status(StatusCodes.OK).send();
 });
 
 //  delete /users/:uuid
-usersRoute.delete('/users/:uuid', (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
+usersRoute.delete('/users/:uuid', async (req: Request<{ uuid: string }>, res: Response, next: NextFunction) => {
+    const uuid = req.params.uuid
+    await  userRepository.remove(uuid);
     res.sendStatus(StatusCodes.OK);
 });
 
